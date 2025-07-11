@@ -6,14 +6,33 @@ function Login() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Dummy check — Replace with real auth logic later
-    if (email === 'admin@example.com' && password === 'password') {
-      alert('Login successful!');
-      navigate('/'); // Redirect to homepage
-    } else {
-      alert('Invalid credentials');
+
+    try {
+      console.log('Login credentials:', { email, password });
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
+
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+    });
+    
+      const data = await res.json();
+      console.log('Login response:', data);
+
+      if (res.ok) {
+        localStorage.setItem('token',data.token);
+        alert('Login successful!');
+        navigate('/'); // Redirect to home
+      } else {
+        alert(data.message || 'Login failed');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      alert('Something went wrong. Please try again.');
     }
   };
 
@@ -57,5 +76,7 @@ function Login() {
     </div>
   );
 }
+
+
 
 export default Login;
