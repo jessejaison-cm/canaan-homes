@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
   },
   photo: {
   type: String,
@@ -25,6 +24,12 @@ const userSchema = new mongoose.Schema({
   isAdmin: {
     type: Boolean,
     default: false
+  },
+  googleId: String,
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
   }
 });
 
