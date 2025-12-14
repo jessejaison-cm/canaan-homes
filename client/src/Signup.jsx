@@ -10,7 +10,7 @@ function Signup() {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/signup`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -21,8 +21,22 @@ function Signup() {
       const data = await res.json();
 
       if (res.ok) {
-        alert('Signup successful!');
-        navigate('/login');
+        // After signup, automatically login to obtain token
+        const loginRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const loginData = await loginRes.json();
+        if (loginRes.ok && loginData.token) {
+          localStorage.setItem('token', loginData.token);
+          alert('Signup successful! Logged in.');
+          navigate('/profile');
+        } else {
+          alert('Signup succeeded — please sign in.');
+          navigate('/login');
+        }
       } else {
         alert(data.msg || 'Signup failed');
       }

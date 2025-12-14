@@ -11,7 +11,7 @@ function Login() {
 
     try {
       console.log('Login credentials:', { email, password });
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
 
         method: 'POST',
         headers: {
@@ -26,7 +26,7 @@ function Login() {
       if (res.ok) {
         localStorage.setItem('token',data.token);
         alert('Login successful!');
-        navigate('/'); // Redirect to home
+        navigate('/');
       } else {
         alert(data.message || 'Login failed');
       }

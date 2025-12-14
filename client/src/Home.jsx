@@ -1,39 +1,99 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { listings } from './data';
 
 import './App.css';
 import ListingCard from './ListingCard';
 
 export default function Home() {
-  // initialise AOS once
+  const [user, setUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredListings, setFilteredListings] = useState(listings);
+
   useEffect(() => {
     AOS.init({ duration: 1000 });
+
+    // Fetch user details if token exists
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.name) setUser(data);
+        })
+        .catch((err) => {
+          console.error('Error fetching user:', err);
+        });
+    }
   }, []);
+
+  // Filter listings based on search query
+  useEffect(() => {
+    const query = searchQuery.toLowerCase();
+    const filtered = listings.filter((listing) =>
+      listing.title.toLowerCase().includes(query) ||
+      listing.description.toLowerCase().includes(query) ||
+      listing.price.toLowerCase().includes(query)
+    );
+    setFilteredListings(filtered);
+  }, [searchQuery]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    window.location.reload(); // Refresh to reflect logout
+  };
+
+  const navigate = useNavigate();
 
   return (
     <>
-{/* Header / Navbar */}
-<header className="bg-white shadow-md sticky top-0 z-20">
-  <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center">
-    
-    {/* Logo and Company Name */}
-    <div className="flex items-center space-x-2">
-      <img src="/bg-home.jpg" alt="Company Logo" className="w-10 h-10 object-cover rounded-full" />
-      <h1 className="text-xl font-bold text-gray-800">Canaan Homes LLC</h1>
-    </div>
-    
-    <nav className="space-x-4">
-      <a href="#home" className="text-gray-600 hover:text-blue-600">Home</a>
-      <a href="#about" className="text-gray-600 hover:text-blue-600">About</a>
-      <a href="#listings" className="text-gray-600 hover:text-blue-600">Listings</a>
-      <a href="#contact" className="text-gray-600 hover:text-blue-600">Contact</a>
-      <a href="/login" className="text-gray-600 hover:text-blue-600">Login</a>
-      <a href="/signup" className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700">Sign Up</a>
-    </nav>
-  </div>
-</header>
+      {/* Header / Navbar */}
+      <header className="bg-white shadow-md sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center">
+          {/* Logo and Company Name */}
+          <div className="flex items-center space-x-2">
+            <img src="/bg-home.jpg" alt="Company Logo" className="w-10 h-10 object-cover rounded-full" />
+            <h1 className="text-xl font-bold text-gray-800">Canaan Homes LLC</h1>
+          </div>
 
+          <nav className="space-x-4 flex items-center">
+            <a href="#home" className="text-gray-600 hover:text-blue-600">Home</a>
+            <a href="#about" className="text-gray-600 hover:text-blue-600">About</a>
+            <a href="#listings" className="text-gray-600 hover:text-blue-600">Listings</a>
+            <a href="#contact" className="text-gray-600 hover:text-blue-600">Contact</a>
+
+            {user ? (
+              <>
+                <img
+                  src={user.photo || '/default-avatar.png'}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full border cursor-pointer"
+                  title={user.name}
+                  onClick={() => navigate('/profile')}
+                />
+                <button
+                  onClick={handleLogout}
+                  className="ml-2 px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <a href="/login" className="text-gray-600 hover:text-blue-600">Login</a>
+                <a href="/signup" className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700">Sign Up</a>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
 
       {/* Hero Section */}
       <section
@@ -55,6 +115,8 @@ export default function Home() {
           <input
             type="text"
             placeholder="Search homes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-md w-72 text-black"
           />
         </div>
@@ -66,27 +128,20 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Featured Listings</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            <ListingCard
-              id="1"
-              image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj5k5vBGnZWxOsrAECLllBigzDVlaofyXtqg&s"
-              title="2BHK in Nairobi"
-              price="AED 3500/month"
-              description="Near Junction Mall, with modern amenities."
-            />
-            <ListingCard
-              id="2"
-              image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXeBLqva86IV7xWRLzK5KlavN8eqHO5D_y4Q&s"
-              title="3BHK in Sharjah"
-              price="AED 4000/month"
-              description="Spacious house in a gated community."
-            />
-            <ListingCard
-              id="3"
-              image="https://homedecorlite.com/public/uploads/20240722/d255ea7b9f817f2a08051ce50ad8c8fb.jpg"
-              title="2BHK in Sharjah"
-              price="AED 2000/month"
-              description="Compact and cozy, perfect for singles."
-            />
+            {filteredListings.length > 0 ? (
+              filteredListings.map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  id={listing.id}
+                  image={listing.image}
+                  title={listing.title}
+                  price={listing.price}
+                  description={listing.description}
+                />
+              ))
+            ) : (
+              <p className="col-span-full text-center text-gray-600">No listings match your search.</p>
+            )}
           </div>
         </div>
       </section>
@@ -102,7 +157,7 @@ export default function Home() {
         <div className="relative max-w-5xl mx-auto px-4 text-center z-10">
           <h2 className="text-4xl font-bold mb-6">About Us</h2>
           <p className="text-lg mb-4">
-            At Canaan Homes LLC, we’ve been helping people find their dream homes since 2020.
+            At Canaan Homes LLC, we've been helping people find their dream homes since 2020.
             We specialize in comfortable, affordable, and secure living spaces across Sharjah.
           </p>
           <p className="text-lg">
@@ -114,7 +169,7 @@ export default function Home() {
       {/* Contact Section */}
       <section id="contact" className="py-20 bg-gray-100" data-aos="fade-up">
         <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Contact Us</h2>
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Contact Us</h2>
           <form className="space-y-6 bg-white p-6 rounded-lg shadow-md">
             <div>
               <label className="block text-gray-700">Name</label>
@@ -144,7 +199,7 @@ export default function Home() {
               type="submit"
               className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition duration-300"
             >
-              Send Message
+              Send Message
             </button>
           </form>
         </div>
@@ -154,7 +209,7 @@ export default function Home() {
       <footer className="bg-gray-800 text-white py-6">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm">
-            &copy; {new Date().getFullYear()} Canaan Homes LLC. All rights reserved.
+            &copy; {new Date().getFullYear()} Canaan Homes LLC. All rights reserved.
           </p>
           <div className="flex space-x-4 mt-2 md:mt-0">
             <a href="#" className="hover:text-blue-400">Facebook</a>
