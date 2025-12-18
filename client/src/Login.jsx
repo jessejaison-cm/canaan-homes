@@ -23,7 +23,7 @@ function Login() {
 
     try {
       console.log('Login credentials:', { email, password });
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
 
         method: 'POST',
         headers: {
@@ -50,7 +50,7 @@ function Login() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/google-token`, {
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/auth/google-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
