@@ -22,7 +22,7 @@ function Signup() {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/signup`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,7 +34,7 @@ function Signup() {
 
       if (res.ok) {
         // After signup, automatically login to obtain token
-        const loginRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/login`, {
+        const loginRes = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
@@ -60,7 +60,7 @@ function Signup() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/google-token`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/google-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
