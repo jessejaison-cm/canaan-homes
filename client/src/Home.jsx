@@ -1,223 +1,222 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { listings } from './data';
 
-import './App.css';
 import ListingCard from './ListingCard';
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredListings, setFilteredListings] = useState(listings);
+  const navigate = useNavigate();
+  const listingsRef = useRef(null);
 
   useEffect(() => {
-    AOS.init({ duration: 1000 });
+    AOS.init({ duration: 1000, once: true });
 
-    // Fetch user details if token exists
     const token = localStorage.getItem('token');
     if (token) {
       fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())
-        .then((data) => {
-          if (data && data.name) setUser(data);
-        })
-        .catch((err) => {
-          console.error('Error fetching user:', err);
-        });
+        .then((data) => data?.name && setUser(data))
+        .catch(() => {});
     }
   }, []);
 
-  // Filter listings based on search query
   useEffect(() => {
-    const query = searchQuery.toLowerCase();
-    const filtered = listings.filter((listing) =>
-      listing.title.toLowerCase().includes(query) ||
-      listing.description.toLowerCase().includes(query) ||
-      listing.price.toLowerCase().includes(query)
+    const q = searchQuery.toLowerCase();
+    setFilteredListings(
+      listings.filter(
+        (l) =>
+          l.title.toLowerCase().includes(q) ||
+          l.description.toLowerCase().includes(q) ||
+          l.price.toLowerCase().includes(q)
+      )
     );
-    setFilteredListings(filtered);
   }, [searchQuery]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    setUser(null);
-    window.location.reload(); // Refresh to reflect logout
+    window.location.reload();
   };
 
-  const navigate = useNavigate();
-
   return (
-    <>
-      {/* Header / Navbar */}
-      <header className="bg-white shadow-md sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center">
-          {/* Logo and Company Name */}
-          <div className="flex items-center space-x-2">
-            <img src="/bg-home.jpg" alt="Company Logo" className="w-10 h-10 object-cover rounded-full" />
-            <h1 className="text-xl font-bold text-gray-800">Canaan Homes LLC</h1>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+
+      {/* ===== Animated Background ===== */}
+      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-blue-500/30 rounded-full blur-3xl animate-[float1_20s_ease-in-out_infinite]" />
+      <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-emerald-500/30 rounded-full blur-3xl animate-[float2_26s_ease-in-out_infinite]" />
+      <div className="absolute bottom-[-25%] left-[30%] w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-3xl animate-[float3_18s_ease-in-out_infinite]" />
+
+      {/* ===== NAVBAR ===== */}
+      <header className="fixed top-0 inset-x-0 z-50 bg-white/80 backdrop-blur-xl shadow-lg">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between text-gray-800">
+          <div className="flex items-center gap-3">
+            <img src="/bg-home.jpg" className="w-10 h-10 rounded-full object-cover" />
+            <span className="text-xl font-extrabold tracking-tight">
+              Canaan Homes
+            </span>
           </div>
 
-          <nav className="space-x-4 flex items-center">
-            <a href="#home" className="text-gray-600 hover:text-blue-600">Home</a>
-            <a href="#about" className="text-gray-600 hover:text-blue-600">About</a>
-            <a href="#listings" className="text-gray-600 hover:text-blue-600">Listings</a>
-            <a href="#contact" className="text-gray-600 hover:text-blue-600">Contact</a>
+          <nav className="hidden md:flex items-center gap-8 font-medium">
+            {['Home', 'Listings', 'About', 'Contact'].map((item) => (
+              <a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className="relative group"
+              >
+                {item}
+                <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-blue-600 transition-all group-hover:w-full" />
+              </a>
+            ))}
+          </nav>
 
+          <div className="flex items-center gap-3">
             {user ? (
               <>
                 <img
                   src={user.photo || '/default-avatar.png'}
-                  alt="Profile"
                   className="w-8 h-8 rounded-full border cursor-pointer"
-                  title={user.name}
                   onClick={() => navigate('/profile')}
                 />
                 <button
                   onClick={handleLogout}
-                  className="ml-2 px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700"
+                  className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <a href="/login" className="text-gray-600 hover:text-blue-600">Login</a>
-                <a href="/signup" className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700">Sign Up</a>
+                <a href="/login" className="hover:text-blue-600">Login</a>
+                <a
+                  href="/signup"
+                  className="px-4 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Sign Up
+                </a>
               </>
             )}
-          </nav>
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* ===== HERO with sticky search ===== */}
       <section
         id="home"
-        className="text-center py-32 text-white"
+        className="relative z-10 flex flex-col items-center justify-center min-h-[60vh] pt-24 text-center"
         data-aos="fade-up"
-        style={{
-          backgroundImage: "url('/bg-home.jpg')",
-          backgroundSize: '110% 200%',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-        }}
       >
-        <div className="bg-black bg-opacity-40 px-4 py-10">
-          <h2 className="text-4xl font-bold mb-4 transition duration-500 hover:scale-105">
-            Welcome to Canaan Homes LLC
-          </h2>
-          <p className="text-xl mb-6">Find your dream home.</p>
+        <h1 className="text-5xl md:text-6xl font-extrabold mb-4">
+          Find Your Dream Home
+        </h1>
+        <p className="text-xl text-gray-300 mb-6">
+          Premium properties • Trusted agents • Seamless experience
+        </p>
+
+        {/* Sticky search bar */}
+        <div className="w-full flex justify-center sticky top-24 z-20">
           <input
             type="text"
-            placeholder="Search homes..."
+            placeholder="Search properties..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-md w-72 text-black"
+            className="px-6 py-3 w-80 rounded-xl text-black shadow-xl focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </section>
 
-      {/* Featured Listings */}
-      <section id="listings" className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Featured Listings</h2>
+      {/* ===== LISTINGS ===== */}
+      <section
+        id="listings"
+        ref={listingsRef}
+        className="relative z-10 pt-6 pb-20"
+        data-aos="fade-up"
+      >
+        <h2 className="text-4xl font-bold text-center mb-10">
+          Featured Listings
+        </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {filteredListings.length > 0 ? (
-              filteredListings.map((listing) => (
-                <ListingCard
-                  key={listing.id}
-                  id={listing.id}
-                  image={listing.image}
-                  title={listing.title}
-                  price={listing.price}
-                  description={listing.description}
-                />
-              ))
-            ) : (
-              <p className="col-span-full text-center text-gray-600">No listings match your search.</p>
-            )}
-          </div>
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+          {filteredListings.length ? (
+            filteredListings.map((listing) => (
+              <div data-aos="zoom-in" key={listing.id}>
+                <ListingCard {...listing} />
+              </div>
+            ))
+          ) : (
+            <p className="col-span-full text-center text-gray-400">
+              No listings found
+            </p>
+          )}
         </div>
       </section>
 
-      {/* About Section */}
+      {/* ===== ABOUT ===== */}
       <section
         id="about"
-        className="relative py-20 bg-cover bg-center text-white"
+        className="relative z-10 py-28 bg-white/5 backdrop-blur-xl"
         data-aos="fade-right"
-        style={{ backgroundImage: "url('https://source.unsplash.com/1600x900/?real-estate,houses')" }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-        <div className="relative max-w-5xl mx-auto px-4 text-center z-10">
-          <h2 className="text-4xl font-bold mb-6">About Us</h2>
-          <p className="text-lg mb-4">
-            At Canaan Homes LLC, we've been helping people find their dream homes since 2020.
-            We specialize in comfortable, affordable, and secure living spaces across Sharjah.
-          </p>
-          <p className="text-lg">
-            Our mission is to make your home search seamless and satisfying — one key at a time. 🏠
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <h2 className="text-4xl font-bold mb-6">
+            About Canaan Homes
+          </h2>
+          <p className="text-lg text-gray-300 leading-relaxed">
+            We specialize in high-quality residential properties across Sharjah.
+            Our mission is to make home-finding elegant, transparent, and stress-free.
           </p>
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20 bg-gray-100" data-aos="fade-up">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Contact Us</h2>
-          <form className="space-y-6 bg-white p-6 rounded-lg shadow-md">
-            <div>
-              <label className="block text-gray-700">Name</label>
-              <input
-                type="text"
-                placeholder="Your name"
-                className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-md"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700">Email</label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-md"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700">Message</label>
-              <textarea
-                rows="4"
-                placeholder="Your message"
-                className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-md"
-              ></textarea>
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition duration-300"
-            >
+      {/* ===== CONTACT ===== */}
+      <section
+        id="contact"
+        className="relative z-10 py-28"
+        data-aos="fade-left"
+      >
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="text-4xl font-bold text-center mb-10">
+            Contact Us
+          </h2>
+
+          <form className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl p-8 space-y-5 text-gray-800">
+            <input className="w-full px-4 py-2 border rounded-lg" placeholder="Name" />
+            <input className="w-full px-4 py-2 border rounded-lg" placeholder="Email" />
+            <textarea rows="4" className="w-full px-4 py-2 border rounded-lg" placeholder="Message" />
+            <button className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition">
               Send Message
             </button>
           </form>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-6">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm">
-            &copy; {new Date().getFullYear()} Canaan Homes LLC. All rights reserved.
-          </p>
-          <div className="flex space-x-4 mt-2 md:mt-0">
-            <a href="#" className="hover:text-blue-400">Facebook</a>
-            <a href="#" className="hover:text-blue-400">Instagram</a>
-            <a href="#" className="hover:text-blue-400">LinkedIn</a>
-          </div>
-        </div>
+      {/* ===== FOOTER ===== */}
+      <footer className="relative z-10 py-6 text-center text-gray-400">
+        © {new Date().getFullYear()} Canaan Homes LLC. All rights reserved.
       </footer>
-    </>
+
+      {/* ===== ANIMATIONS ===== */}
+      <style>
+        {`
+          @keyframes float1 {
+            0%,100% { transform: translate(0,0); }
+            50% { transform: translate(80px,60px); }
+          }
+          @keyframes float2 {
+            0%,100% { transform: translate(0,0); }
+            50% { transform: translate(-100px,-80px); }
+          }
+          @keyframes float3 {
+            0%,100% { transform: translate(0,0); }
+            50% { transform: translate(60px,-100px); }
+          }
+        `}
+      </style>
+    </div>
   );
 }

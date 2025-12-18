@@ -126,7 +126,7 @@ function MyRequests() {
 
         <button
           onClick={() => navigate('/')}
-          className="mt-8 text-blue-600 hover:text-blue-800 underline"
+          className="mt-8 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-x-1"
         >
           ← Back to Home
         </button>
